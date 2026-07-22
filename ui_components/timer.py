@@ -4,9 +4,13 @@ import tkinter.font as tkFont
 from tkinter import messagebox
 from pygame import mixer
 
-SESSION_TIME = (0, 25, 0)
-BREAK_TIME = (0, 5, 0)
+SESSION_TIME = (0, 1, 0)
+BREAK_TIME = (0, 1, 0)
 N_SESSIONS = 4
+
+SESSION_BAR_COLOR = "blue"
+BREAK_BAR_COLOR = "green"
+PAUSE_BAR_COLOR = "grey"
 
 SESSION_END_SOUND = "D:\\backup_new\\music\\effects\\aughhh.mp3"
 BREAK_END_SOUND = "D:\\backup_new\\music\\effects\\quack.mp3"
@@ -35,6 +39,9 @@ class Time():
 			self.seconds -= 1
 		return True
 
+	def get_seconds(self):
+		return self.hours * 3600 + self.minutes * 60 + self.seconds
+
 class PomodoroTimer():
 	def __init__(self, parent: tk.Misc):
 		self.parent = parent
@@ -56,6 +63,8 @@ class PomodoroTimer():
 		self.pause_btn = tk.Button(parent, text="Pause/Unpause", command=self.pause_unpause_timer)
 		self.reset_btn = tk.Button(parent, text="Reset", command=self.reset_timer)
 
+		self.prog_bar = tk.Canvas(parent, width=200, height=10)
+
 		mixer.init()
 		self.ses_end_snd = mixer.Sound(SESSION_END_SOUND)
 		self.brk_end_snd = mixer.Sound(BREAK_END_SOUND)
@@ -63,9 +72,11 @@ class PomodoroTimer():
 	def grid(self, root_row: int, root_column: int):
 		self.session_display.grid(row=root_row, column=root_column, columnspan=3)
 		self.timer_display.grid(row=root_row+1, column=root_column, columnspan=3)
-		self.start_btn.grid(row=root_row+2, column=root_column)
-		self.pause_btn.grid(row=root_row+2, column=root_column+1)
-		self.reset_btn.grid(row=root_row+2, column=root_column+2)
+		self.prog_bar.grid(row=root_row+2, column=root_column, columnspan=3)
+		self.prog_bar.create_rectangle(0, 0, 200, 10, fill="black", outline="black")
+		self.start_btn.grid(row=root_row+3, column=root_column)
+		self.pause_btn.grid(row=root_row+3, column=root_column+1)
+		self.reset_btn.grid(row=root_row+3, column=root_column+2)
 
 	def initialize_timer(self):
 		self.is_break = False
@@ -86,6 +97,7 @@ class PomodoroTimer():
 			return
 
 		is_ongoing = self.current_time.decrement()
+		self.update_bar()
 
 		if self.is_break:
 			self.ses_disp_str.set(f"Break {self.session_n}/{self.n_sessions}:")
@@ -98,9 +110,27 @@ class PomodoroTimer():
 		else:
 			self.progress_session()
 
+	def update_bar(self):
+		def get_bar_color(self: PomodoroTimer):
+			if self.is_paused:
+				return PAUSE_BAR_COLOR
+			if self.is_break:
+				return BREAK_BAR_COLOR
+			return SESSION_BAR_COLOR
+		
+		self.prog_bar.create_rectangle(0, 0, 200, 10, fill="black", outline="black")
+		if self.is_running:
+			bar_color = get_bar_color(self)
+			current_t = self.current_time.get_seconds()
+			full_t = Time(BREAK_TIME).get_seconds() if self.is_break else Time(SESSION_TIME).get_seconds()
+			width = int(200 * (1 - current_t/full_t))
+			self.prog_bar.create_rectangle(0, 0, width, 10, fill=bar_color, outline=bar_color)
+
 	def progress_session(self):
 		if self.session_n == self.n_sessions:
 			self.ses_end_snd.play()
+			self.is_running = False
+			self.update_bar()
 			messagebox.showinfo("Time Countdown", "Time's up ")
 			return
 		if self.is_break:
@@ -118,3 +148,4 @@ class PomodoroTimer():
 		self.is_running = False
 		self.ses_disp_str.set(f"Session 0/0:")
 		self.tmr_disp_str.set(f"00:00:00")
+		self.update_bar()
