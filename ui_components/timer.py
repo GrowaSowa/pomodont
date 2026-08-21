@@ -4,8 +4,8 @@ import tkinter.font as tkFont
 from tkinter import messagebox
 from pygame import mixer
 
-SESSION_TIME = (0, 1, 0)
-BREAK_TIME = (0, 1, 0)
+SESSION_TIME = (0, 25, 0)
+BREAK_TIME = (0, 5, 0)
 N_SESSIONS = 4
 
 SESSION_BAR_COLOR = "blue"
@@ -63,7 +63,7 @@ class PomodoroTimer():
 		self.pause_btn = tk.Button(parent, text="Pause/Unpause", command=self.pause_unpause_timer)
 		self.reset_btn = tk.Button(parent, text="Reset", command=self.reset_timer)
 
-		self.prog_bar = tk.Canvas(parent, width=200, height=10)
+		self.prog_bar = TimerProgressBar(parent)
 
 		mixer.init()
 		self.ses_end_snd = mixer.Sound(SESSION_END_SOUND)
@@ -72,8 +72,7 @@ class PomodoroTimer():
 	def grid(self, root_row: int, root_column: int):
 		self.session_display.grid(row=root_row, column=root_column, columnspan=3)
 		self.timer_display.grid(row=root_row+1, column=root_column, columnspan=3)
-		self.prog_bar.grid(row=root_row+2, column=root_column, columnspan=3)
-		self.prog_bar.create_rectangle(0, 0, 200, 10, fill="black", outline="black")
+		self.prog_bar.grid(root_row+2, root_column)
 		self.start_btn.grid(row=root_row+3, column=root_column)
 		self.pause_btn.grid(row=root_row+3, column=root_column+1)
 		self.reset_btn.grid(row=root_row+3, column=root_column+2)
@@ -111,20 +110,7 @@ class PomodoroTimer():
 			self.progress_session()
 
 	def update_bar(self):
-		def get_bar_color(self: PomodoroTimer):
-			if self.is_paused:
-				return PAUSE_BAR_COLOR
-			if self.is_break:
-				return BREAK_BAR_COLOR
-			return SESSION_BAR_COLOR
-		
-		self.prog_bar.create_rectangle(0, 0, 200, 10, fill="black", outline="black")
-		if self.is_running:
-			bar_color = get_bar_color(self)
-			current_t = self.current_time.get_seconds()
-			full_t = Time(BREAK_TIME).get_seconds() if self.is_break else Time(SESSION_TIME).get_seconds()
-			width = int(200 * (1 - current_t/full_t))
-			self.prog_bar.create_rectangle(0, 0, width, 10, fill=bar_color, outline=bar_color)
+		self.prog_bar.update(self.current_time.get_seconds(), self.is_running, self.is_paused, self.is_break)
 
 	def progress_session(self):
 		if self.session_n == self.n_sessions:
@@ -143,9 +129,36 @@ class PomodoroTimer():
 
 	def pause_unpause_timer(self):
 		self.is_paused = not self.is_paused
+		self.update_bar()
 
 	def reset_timer(self):
 		self.is_running = False
 		self.ses_disp_str.set(f"Session 0/0:")
 		self.tmr_disp_str.set(f"00:00:00")
 		self.update_bar()
+
+class TimerProgressBar():
+	def __init__(self, parent: tk.Misc) -> None:
+		self.parent = parent
+		self.bar = tk.Canvas(parent, width=200, height=10)
+
+	def grid(self, root_row: int, root_column: int):
+		self.bar.grid(row=root_row, column=root_column, columnspan=3)
+		self.bar.create_rectangle(0, 0, 200, 10, fill="black", outline="black")
+
+	def update(self, current_t: int, is_running: bool, is_paused: bool, is_break: bool):
+		def get_bar_color():
+			if is_paused:
+				return PAUSE_BAR_COLOR
+			if is_break:
+				return BREAK_BAR_COLOR
+			return SESSION_BAR_COLOR
+
+		self.bar.create_rectangle(0, 0, 200, 10, fill="black", outline="black")
+		if is_running:
+			bar_color = get_bar_color()
+			full_t = Time(BREAK_TIME).get_seconds() if is_break else Time(SESSION_TIME).get_seconds()
+			width = int(200 * (1 - current_t/full_t))
+			self.bar.create_rectangle(0, 0, width, 10, fill=bar_color, outline=bar_color)
+
+	
