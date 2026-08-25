@@ -4,16 +4,7 @@ import tkinter.font as tkFont
 from tkinter import messagebox
 from pygame import mixer
 
-SESSION_TIME = (0, 25, 0)
-BREAK_TIME = (0, 5, 0)
-N_SESSIONS = 4
-
-SESSION_BAR_COLOR = "blue"
-BREAK_BAR_COLOR = "green"
-PAUSE_BAR_COLOR = "grey"
-
-SESSION_END_SOUND = "D:\\backup_new\\music\\effects\\aughhh.mp3"
-BREAK_END_SOUND = "D:\\backup_new\\music\\effects\\quack.mp3"
+from modules.config import AppConfig
 
 class Time():
 	def __init__(self, start_t: tuple[int, int, int]):
@@ -43,11 +34,9 @@ class Time():
 		return self.hours * 3600 + self.minutes * 60 + self.seconds
 
 class PomodoroTimer():
-	def __init__(self, parent: tk.Misc):
+	def __init__(self, parent: tk.Misc, config: AppConfig):
 		self.parent = parent
-		self.session_time = SESSION_TIME
-		self.break_time = BREAK_TIME
-		self.n_sessions: int = N_SESSIONS
+		self.config = config
 		self.current_time = Time((0, 0, 0))
 		self.session_n = 0
 		self.is_running = False
@@ -63,11 +52,11 @@ class PomodoroTimer():
 		self.pause_btn = tk.Button(parent, text="Pause/Unpause", command=self.pause_unpause_timer)
 		self.reset_btn = tk.Button(parent, text="Reset", command=self.reset_timer)
 
-		self.prog_bar = TimerProgressBar(parent)
+		self.prog_bar = TimerProgressBar(parent, config)
 
 		mixer.init()
-		self.ses_end_snd = mixer.Sound(SESSION_END_SOUND)
-		self.brk_end_snd = mixer.Sound(BREAK_END_SOUND)
+		self.ses_end_snd = mixer.Sound(self.config.session_end_sound)
+		self.brk_end_snd = mixer.Sound(self.config.break_end_sound)
 
 	def grid(self, root_row: int, root_column: int):
 		self.session_display.grid(row=root_row, column=root_column, columnspan=3)
@@ -85,7 +74,7 @@ class PomodoroTimer():
 	def start_timer(self):
 		self.is_running = True
 		self.is_paused = False
-		self.current_time = Time(self.break_time) if self.is_break else Time(self.session_time)
+		self.current_time = Time(self.config.break_time) if self.is_break else Time(self.config.session_time)
 		self.update_timer()
 
 	def update_timer(self):
@@ -99,9 +88,9 @@ class PomodoroTimer():
 		self.update_bar()
 
 		if self.is_break:
-			self.ses_disp_str.set(f"Break {self.session_n}/{self.n_sessions}:")
+			self.ses_disp_str.set(f"Break {self.session_n}/{self.config.n_sessions}:")
 		else:
-			self.ses_disp_str.set(f"Session {self.session_n}/{self.n_sessions}:")
+			self.ses_disp_str.set(f"Session {self.session_n}/{self.config.n_sessions}:")
 		self.tmr_disp_str.set(f"{self.current_time.hours:02d}:{self.current_time.minutes:02d}:{self.current_time.seconds:02d}")
 
 		if is_ongoing:
@@ -113,7 +102,7 @@ class PomodoroTimer():
 		self.prog_bar.update(self.current_time.get_seconds(), self.is_running, self.is_paused, self.is_break)
 
 	def progress_session(self):
-		if self.session_n == self.n_sessions:
+		if self.session_n == self.config.n_sessions:
 			self.ses_end_snd.play()
 			self.is_running = False
 			self.update_bar()
@@ -138,8 +127,9 @@ class PomodoroTimer():
 		self.update_bar()
 
 class TimerProgressBar():
-	def __init__(self, parent: tk.Misc) -> None:
+	def __init__(self, parent: tk.Misc, config: AppConfig):
 		self.parent = parent
+		self.config = config
 		self.bar = tk.Canvas(parent, width=200, height=10)
 
 	def grid(self, root_row: int, root_column: int):
@@ -149,16 +139,14 @@ class TimerProgressBar():
 	def update(self, current_t: int, is_running: bool, is_paused: bool, is_break: bool):
 		def get_bar_color():
 			if is_paused:
-				return PAUSE_BAR_COLOR
+				return self.config.pause_bar_color
 			if is_break:
-				return BREAK_BAR_COLOR
-			return SESSION_BAR_COLOR
+				return self.config.break_bar_color
+			return self.config.session_bar_color
 
 		self.bar.create_rectangle(0, 0, 200, 10, fill="black", outline="black")
 		if is_running:
 			bar_color = get_bar_color()
-			full_t = Time(BREAK_TIME).get_seconds() if is_break else Time(SESSION_TIME).get_seconds()
+			full_t = Time(self.config.break_time).get_seconds() if is_break else Time(self.config.session_time).get_seconds()
 			width = int(200 * (1 - current_t/full_t))
 			self.bar.create_rectangle(0, 0, width, 10, fill=bar_color, outline=bar_color)
-
-	
