@@ -23,7 +23,12 @@ class App():
 		self.timer.grid(0, 0)
 	
 		self.settings = SettingsTab(config_tab, self.config)
+		self.settings.save_btn.bind("<Button>", self.save_settings)
 		self.settings.grid(0, 0)
 
 	def mainloop(self):
 		self.window.mainloop()
+
+	def save_settings(self, event):
+		self.settings.save_settings()
+		self.timer.reset_timer()
