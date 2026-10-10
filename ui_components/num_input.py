@@ -19,12 +19,9 @@ class NumberEntry(ttk.Frame):
 		self.up_btn.grid(row = 0, column = 0)
 		self.down_btn.grid(row = 1, column = 0)
 
-	def get(self)->int|None:
+	def get(self)->int:
 		value = self.val.get()
-		try:
-			return int(value) if value not in ("", "-") else 0
-		except ValueError:
-			return None
+		return int(value) if value not in ("", "-") else 0
 	
 	def set(self, value: int):
 		self.val.set(str(self._clamp(value)))
