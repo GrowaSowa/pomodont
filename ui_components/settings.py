@@ -12,9 +12,11 @@ class SettingsTab():
 
 		self.session_entry = TimePicker(parent, config.session_time)
 		self.break_entry = TimePicker(parent, config.break_time)
+		self.session_num_entry = NumberEntry(parent, self.config.n_sessions, 1, 99, 2)
 
 		self.session_label = ttk.Label(parent, text="Session time:")
 		self.break_label = ttk.Label(parent, text="Break time:")
+		self.session_num_label = ttk.Label(parent, text="# sessions:")
 
 		self.save_btn = tk.Button(parent, text="Save")
 
@@ -23,11 +25,15 @@ class SettingsTab():
 		self.session_entry.grid(row=root_row+1, column=root_column)
 		self.break_label.grid(row=root_row+2, column=root_column)
 		self.break_entry.grid(row=root_row+3, column=root_column)
-		self.save_btn.grid(row=root_row+4, column=root_column)
+		self.session_num_label.grid(row=root_row+4, column=root_column)
+		self.session_num_entry.grid(row=root_row+5, column=root_column)
+		self.save_btn.grid(row=root_row+6, column=root_column)
 
 	def save_settings(self):
+		#TODO: make this actual MVC, rather than direct modification of the model?
 		self.config.session_time = self.session_entry.get()
 		self.config.break_time = self.break_entry.get()
+		self.config.n_sessions = self.session_num_entry.get()
 
 class TimePicker(ttk.Frame):
 	def __init__(self, parent: tk.Misc, init_val: tuple[int, int, int], **kwargs):
