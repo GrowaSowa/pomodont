@@ -5,29 +5,28 @@ import tkinter.font as tkFont
 from ui_components.num_input import NumberEntry
 from modules.config import AppConfig
 
-class SettingsTab():
-	def __init__(self, parent: tk.Misc, config: AppConfig):
-		self.parent = parent
+class SettingsTab(ttk.Frame):
+	def __init__(self, parent: tk.Misc, config: AppConfig, **kwargs):
+		super().__init__(parent, **kwargs)
 		self.config = config
 
-		self.session_entry = TimePicker(parent, config.session_time)
-		self.break_entry = TimePicker(parent, config.break_time)
-		self.session_num_entry = NumberEntry(parent, self.config.n_sessions, 1, 99, 2)
+		self.session_entry = TimePicker(self, config.session_time)
+		self.break_entry = TimePicker(self, config.break_time)
+		self.session_num_entry = NumberEntry(self, self.config.n_sessions, 1, 99, 2)
 
-		self.session_label = ttk.Label(parent, text="Session time:")
-		self.break_label = ttk.Label(parent, text="Break time:")
-		self.session_num_label = ttk.Label(parent, text="# sessions:")
+		self.session_label = ttk.Label(self, text="Session time:")
+		self.break_label = ttk.Label(self, text="Break time:")
+		self.session_num_label = ttk.Label(self, text="# sessions:")
 
-		self.save_btn = tk.Button(parent, text="Save")
+		self.save_btn = tk.Button(self, text="Save")
 
-	def grid(self, root_row: int, root_column: int):
-		self.session_label.grid(row=root_row, column=root_column)
-		self.session_entry.grid(row=root_row+1, column=root_column)
-		self.break_label.grid(row=root_row+2, column=root_column)
-		self.break_entry.grid(row=root_row+3, column=root_column)
-		self.session_num_label.grid(row=root_row+4, column=root_column)
-		self.session_num_entry.grid(row=root_row+5, column=root_column)
-		self.save_btn.grid(row=root_row+6, column=root_column)
+		self.session_label.grid(row=0, column=0)
+		self.session_entry.grid(row=1, column=0)
+		self.break_label.grid(row=2, column=0)
+		self.break_entry.grid(row=3, column=0)
+		self.session_num_label.grid(row=4, column=0)
+		self.session_num_entry.grid(row=5, column=0)
+		self.save_btn.grid(row=6, column=0)
 
 	def save_settings(self):
 		#TODO: make this actual MVC, rather than direct modification of the model?

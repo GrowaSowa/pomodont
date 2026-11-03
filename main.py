@@ -14,17 +14,15 @@ class App():
 
 		self.tabs = ttk.Notebook(self.window)
 		timer_tab = ttk.Frame(self.tabs)
-		config_tab = ttk.Frame(self.tabs)
+		self.settings = SettingsTab(self.tabs, self.config)
 		self.tabs.add(timer_tab, text="Timer")
-		self.tabs.add(config_tab, text="Settings")
+		self.tabs.add(self.settings, text="Settings")
 		self.tabs.pack()
 	
 		self.timer = PomodoroTimer(timer_tab, self.config)
 		self.timer.grid(0, 0)
 	
-		self.settings = SettingsTab(config_tab, self.config)
 		self.settings.save_btn.bind("<Button>", self.save_settings)
-		self.settings.grid(0, 0)
 
 	def mainloop(self):
 		self.window.mainloop()
