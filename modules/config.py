@@ -14,7 +14,7 @@ class AppConfig:
 	break_end_sound: str = "D:\\backup_new\\music\\effects\\quack.mp3"
 
 def load_config(fname: str)->AppConfig:
-	if(os.path.exists(fname)):
+	if os.path.exists(fname):
 		with open(fname, "r") as f:
 			cfg = json.load(f)
 		return AppConfig(**cfg)

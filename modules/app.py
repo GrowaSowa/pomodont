@@ -32,3 +32,6 @@ class App():
 	def save_settings(self, event):
 		self.settings.save_settings()
 		self.timer.reset_timer()
+
+	def save_config_to_file(self):
+		modules.config.save_config("config.json", self.config)
