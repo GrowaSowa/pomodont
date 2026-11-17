@@ -33,9 +33,9 @@ class Time():
 	def get_seconds(self):
 		return self.hours * 3600 + self.minutes * 60 + self.seconds
 
-class PomodoroTimer():
-	def __init__(self, parent: tk.Misc, config: AppConfig):
-		self.parent = parent
+class PomodoroTimer(ttk.Frame):
+	def __init__(self, parent: tk.Misc, config: AppConfig, **kwargs):
+		super().__init__(parent, **kwargs)
 		self.config = config
 		self.current_time = Time((0, 0, 0))
 		self.session_n = 0
@@ -45,26 +45,28 @@ class PomodoroTimer():
 
 		self.ses_disp_str = tk.StringVar(value="Session 0/0:")
 		self.tmr_disp_str = tk.StringVar(value="00:00:00")
-		self.session_display = ttk.Label(parent, textvariable=self.ses_disp_str, font=tkFont.Font(family="Consolas", size=30))
-		self.timer_display = ttk.Label(parent, textvariable=self.tmr_disp_str, font=tkFont.Font(family="Consolas", size=45))
+		self.session_display = ttk.Label(self, textvariable=self.ses_disp_str, font=tkFont.Font(family="Consolas", size=30))
+		self.timer_display = ttk.Label(self, textvariable=self.tmr_disp_str, font=tkFont.Font(family="Consolas", size=45))
 
-		self.start_btn = tk.Button(parent, text="Start", command=self.initialize_timer)
-		self.pause_btn = tk.Button(parent, text="Pause/Unpause", command=self.pause_unpause_timer)
-		self.reset_btn = tk.Button(parent, text="Reset", command=self.reset_timer)
+		self.start_btn = tk.Button(self, text="Start", command=self.initialize_timer)
+		self.pause_btn = tk.Button(self, text="Pause/Unpause", command=self.pause_unpause_timer)
+		self.reset_btn = tk.Button(self, text="Reset", command=self.reset_timer)
 
-		self.prog_bar = TimerProgressBar(parent, config)
+		self.prog_bar = TimerProgressBar(self, config)
 
 		mixer.init()
 		self.ses_end_snd = mixer.Sound(self.config.session_end_sound)
 		self.brk_end_snd = mixer.Sound(self.config.break_end_sound)
 
-	def grid(self, root_row: int, root_column: int):
-		self.session_display.grid(row=root_row, column=root_column, columnspan=3)
-		self.timer_display.grid(row=root_row+1, column=root_column, columnspan=3)
-		self.prog_bar.grid(root_row+2, root_column)
-		self.start_btn.grid(row=root_row+3, column=root_column)
-		self.pause_btn.grid(row=root_row+3, column=root_column+1)
-		self.reset_btn.grid(row=root_row+3, column=root_column+2)
+		self._grid_widgets()
+
+	def _grid_widgets(self):
+		self.session_display.grid(row=0, column=0, columnspan=3)
+		self.timer_display.grid(row=1, column=0, columnspan=3)
+		self.prog_bar.grid(2, 0)
+		self.start_btn.grid(row=3, column=0)
+		self.pause_btn.grid(row=3, column=1)
+		self.reset_btn.grid(row=3, column=2)
 
 	def initialize_timer(self):
 		self.is_break = False
@@ -81,7 +83,7 @@ class PomodoroTimer():
 		if not self.is_running:
 			return
 		if self.is_paused:
-			self.parent.after(ms=100, func=self.update_timer)
+			self.after(ms=100, func=self.update_timer)
 			return
 
 		is_ongoing = self.current_time.decrement()
@@ -94,7 +96,7 @@ class PomodoroTimer():
 		self.tmr_disp_str.set(f"{self.current_time.hours:02d}:{self.current_time.minutes:02d}:{self.current_time.seconds:02d}")
 
 		if is_ongoing:
-			self.parent.after(ms=1000, func=self.update_timer)
+			self.after(ms=1000, func=self.update_timer)
 		else:
 			self.progress_session()
 
@@ -114,7 +116,7 @@ class PomodoroTimer():
 		else:
 			self.ses_end_snd.play()
 		self.is_break = not self.is_break
-		self.parent.after(ms=100, func=self.start_timer)
+		self.after(ms=100, func=self.start_timer)
 
 	def pause_unpause_timer(self):
 		self.is_paused = not self.is_paused

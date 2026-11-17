@@ -13,14 +13,11 @@ class App():
 		self.config = modules.config.load_config("config.json")
 
 		self.tabs = ttk.Notebook(self.window)
-		timer_tab = ttk.Frame(self.tabs)
+		self.timer = PomodoroTimer(self.tabs, self.config)
 		self.settings = SettingsTab(self.tabs, self.config)
-		self.tabs.add(timer_tab, text="Timer")
+		self.tabs.add(self.timer, text="Timer")
 		self.tabs.add(self.settings, text="Settings")
 		self.tabs.pack()
-	
-		self.timer = PomodoroTimer(timer_tab, self.config)
-		self.timer.grid(0, 0)
 	
 		self.settings.save_btn.bind("<Button>", self.save_settings)
 
